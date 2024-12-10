@@ -3,16 +3,16 @@ using System.Threading;
 
 class Tetris
 {
-    const int Width = 10;
-    const int Height = 20;
-    static char[,] board = new char[Height, Width];
-    static (int x, int y)[] currentPiece;
-    static (int x, int y)[] nextPiece;
-    static (int x, int y) piecePosition;
-    static Random random = new Random();
-    static bool gameOver = false;
-    static int score = 0;
-    static bool pieceDropped = false;
+    const int Width = 10; // Width of the game board
+    const int Height = 20; // Height of the game board
+    static char[,] board = new char[Height, Width]; // Represents the game board
+    static (int x, int y)[] currentPiece; // The active falling tetromino
+    static (int x, int y)[] nextPiece; // The upcoming tetromino
+    static (int x, int y) piecePosition; // Position of the current piece on the board
+    static Random random = new Random(); // Random generator for selecting tetrominoes
+    static bool gameOver = false; // Indicates if the game is over
+    static int score = 0; // Player's score
+    static bool pieceDropped = false; // Indicates if a piece has been placed
 
     static (int x, int y)[][] Tetrominoes = new (int x, int y)[][]
     {
@@ -35,6 +35,9 @@ class Tetris
         } while (PromptForNewGame());
     }
 
+    /// <summary>
+    /// Starts a new game session by initializing the board and running the game loop.
+    /// </summary>
     static void StartGame()
     {
         InitializeBoard();
@@ -73,6 +76,9 @@ class Tetris
         Console.WriteLine($"Final Score: {score}");
     }
 
+    /// <summary>
+    /// Prompts the user to decide whether to play another game after a "Game Over."
+    /// </summary>
     static bool PromptForNewGame()
     {
         Console.WriteLine("Do you want to play again? (Y/N):");
@@ -86,6 +92,9 @@ class Tetris
         }
     }
 
+    /// <summary>
+    /// Initializes the board by clearing all cells.
+    /// </summary>
     static void InitializeBoard()
     {
         for (int y = 0; y < Height; y++)
@@ -93,6 +102,9 @@ class Tetris
                 board[y, x] = ' ';
     }
 
+    /// <summary>
+    /// Spawns a new tetromino piece at the top of the board.
+    /// </summary>
     static void SpawnPiece()
     {
         currentPiece = nextPiece;
@@ -103,6 +115,9 @@ class Tetris
             gameOver = true;
     }
 
+    /// <summary>
+    /// Draws the game board, score, and the next piece preview on the console.
+    /// </summary>
     static void DrawBoard()
     {
         Console.SetCursorPosition(0, 0);
@@ -128,6 +143,9 @@ class Tetris
         DrawNextPiece();
     }
 
+    /// <summary>
+    /// Draws the preview of the next tetromino piece.
+    /// </summary>
     static void DrawNextPiece()
     {
         Console.WriteLine("Next:");
@@ -156,6 +174,9 @@ class Tetris
         }
     }
 
+    /// <summary>
+    /// Handles player input for moving and rotating the active piece.
+    /// </summary>
     static void HandleInput()
     {
         while (!gameOver)
@@ -181,6 +202,9 @@ class Tetris
         }
     }
 
+    /// <summary>
+    /// Checks if the current piece can move to a new position.
+    /// </summary>
     static bool CanMove(int dx, int dy)
     {
         foreach (var (x, y) in currentPiece)
@@ -197,6 +221,9 @@ class Tetris
         return true;
     }
 
+    /// <summary>
+    /// Moves the active piece by a specified offset, if possible.
+    /// </summary>
     static void MovePiece(int dx, int dy)
     {
         if (CanMove(dx, dy))
@@ -209,6 +236,9 @@ class Tetris
         }
     }
 
+    /// <summary>
+    /// Places the active piece on the board and clears full lines.
+    /// </summary>
     static void PlacePiece()
     {
         foreach (var (x, y) in currentPiece)
@@ -223,6 +253,9 @@ class Tetris
         SpawnPiece();
     }
 
+    /// <summary>
+    /// Clears any completed lines and shifts the rows above downward.
+    /// </summary>
     static void ClearLines()
     {
         for (int y = Height - 1; y >= 0; y--)
@@ -253,33 +286,39 @@ class Tetris
                     board[0, x] = ' ';
                 }
 
-                y++; // Recheck the same line after shifting
+                y++; // Recheck the current row after clearing
             }
         }
     }
 
+    /// <summary>
+    /// Checks if a position is part of the current falling piece.
+    /// </summary>
     static bool IsPartOfPiece(int x, int y)
     {
-        foreach (var (px, py) in currentPiece)
+        foreach (var (pieceX, pieceY) in currentPiece)
         {
-            if (x == piecePosition.x + px && y == piecePosition.y + py)
+            if (x == piecePosition.x + pieceX && y == piecePosition.y + pieceY)
                 return true;
         }
         return false;
     }
 
+    /// <summary>
+    /// Rotates the active piece clockwise, if possible.
+    /// </summary>
     static void RotatePiece()
     {
         var rotatedPiece = new (int x, int y)[currentPiece.Length];
         for (int i = 0; i < currentPiece.Length; i++)
         {
+            // Rotate 90 degrees clockwise (x, y) -> (-y, x)
             rotatedPiece[i] = (-currentPiece[i].y, currentPiece[i].x);
         }
 
         var originalPiece = currentPiece;
         currentPiece = rotatedPiece;
-
         if (!CanMove(0, 0))
-            currentPiece = originalPiece;
+            currentPiece = originalPiece; // Revert if rotation is invalid
     }
 }
